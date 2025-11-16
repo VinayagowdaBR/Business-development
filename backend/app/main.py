@@ -1,8 +1,10 @@
 """
 Main FastAPI application
 """
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database import Base, engine
@@ -30,7 +32,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include API router
+
+# Serve uploaded files (ADD THIS BEFORE API ROUTES)
+uploads_dir = "uploads"
+if not os.path.exists(uploads_dir):
+    os.makedirs(uploads_dir)
+app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+
+
+
+
+# Include API router ONCE
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.get("/")

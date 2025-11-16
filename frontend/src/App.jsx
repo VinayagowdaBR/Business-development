@@ -9,6 +9,9 @@ import RoleManagement from './pages/RoleManagement';
 import OrganizationDashboard from './components/OrganizationDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import MembersList from './pages/MembersList'; 
+import AreaLegionPage from './pages/AreaLegionPage';
+import MembershipFeesPage from './pages/MembershipFeesPage';
+import MemberTypesPage from './pages/MemberTypesPage';
 
 function App() {
   return (
@@ -19,7 +22,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           
-          {/* Protected Routes with Layout */}
+          {/* Dashboard */}
           <Route
             path="/dashboard"
             element={
@@ -30,6 +33,32 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Areas & Legions */}
+          <Route
+            path="/areas-legions"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <AreaLegionPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Membership Fees - FIXED: Only one route */}
+          <Route
+            path="/membership-fees"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <MembershipFeesPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Users */}
           <Route
             path="/users"
             element={
@@ -40,7 +69,8 @@ function App() {
               </ProtectedRoute>
             }
           />
-          {/* ADD THIS ROUTE FOR /users/roles */}
+
+          {/* Roles Management */}
           <Route
             path="/users/roles"
             element={
@@ -52,7 +82,8 @@ function App() {
             }
           />
 
-           <Route
+          {/* Members */}
+          <Route
             path="/members"
             element={
               <ProtectedRoute>
@@ -63,8 +94,24 @@ function App() {
             }
           />
 
+          <Route
+            path="/member-types"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <MemberTypesPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
 
 
+
+
+
+
+
+          {/* Legacy Roles Route */}
           <Route
             path="/roles"
             element={

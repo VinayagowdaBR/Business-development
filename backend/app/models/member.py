@@ -1,46 +1,65 @@
 """
-Member profile model - Extended user information
+Member model - External clients/members with login capability
 """
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Text, Date
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Text, Date, Enum
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
+import enum
+
+class GenderEnum(str, enum.Enum):
+    MALE = "Male"
+    FEMALE = "Female"
 
 class Member(Base):
+    """External clients/members who can login"""
     __tablename__ = "members"
     
+    # Primary Key
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
     
     # Personal Information
-    first_name = Column(String(50))
-    last_name = Column(String(50))
-    phone = Column(String(20))
-    date_of_birth = Column(Date)
+    first_name = Column(String(100), nullable=False)
+    last_name = Column(String(100), nullable=False)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    mobile = Column(String(20), nullable=False)
+    gender = Column(Enum(GenderEnum), nullable=False)
+    date_of_birth = Column(Date, nullable=False)
     
-    # Professional Information
-    job_title = Column(String(100))
-    department = Column(String(100))
-    employee_id = Column(String(50), unique=True, index=True)
+    # Authentication
+    hashed_password = Column(String(255), nullable=False)
     
-    # Address
-    address_line1 = Column(String(255))
-    address_line2 = Column(String(255))
-    city = Column(String(100))
-    state = Column(String(100))
-    country = Column(String(100))
-    postal_code = Column(String(20))
+    # Membership Details
+    member_type_id = Column(Integer, ForeignKey("member_types.id"), nullable=False)
+    membership_number = Column(String(50), unique=True, nullable=False, index=True)
+    membership_fee_id = Column(Integer, ForeignKey("membership_fees.id"), nullable=False)
     
-    # Additional Info
-    bio = Column(Text)
-    profile_picture_url = Column(String(500))
+    # Location
+    area_id = Column(Integer, ForeignKey("areas.id"), nullable=False)
+    legion_id = Column(Integer, ForeignKey("legions.id"), nullable=False)
     
-    # Metadata
-    joined_date = Column(DateTime, default=datetime.utcnow)
-    last_active = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    # Which organization manages this member
+    managed_by_org_id = Column(Integer, ForeignKey("organizations.id"), nullable=False)
+    
+    # Status
+    is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
+    
+    # Dates
+    join_date = Column(Date, default=datetime.utcnow)
+    expiry_date = Column(Date, nullable=True)
+    
+    # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
-    user = relationship("User", back_populates="member_profile")
+    # Relationships - Use string references for foreign_keys
+    managing_organization = relationship(
+        "Organization", 
+        foreign_keys="[Member.managed_by_org_id]",  # ✅ Fixed: Use string reference
+        overlaps="managed_members"
+    )
+    member_type = relationship("MemberType")
+    membership_fee = relationship("MembershipFee")
+    area = relationship("Area")
+    legion = relationship("Legion")

@@ -1,60 +1,56 @@
 """
-Member profile schemas
+Member schemas
 """
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, validator
+from datetime import date, datetime
 from typing import Optional
-from datetime import datetime, date
 
-class MemberBase(BaseModel):
-    first_name: Optional[str] = Field(None, max_length=50)
-    last_name: Optional[str] = Field(None, max_length=50)
-    phone: Optional[str] = Field(None, max_length=20)
-    date_of_birth: Optional[date] = None
-    job_title: Optional[str] = Field(None, max_length=100)
-    department: Optional[str] = Field(None, max_length=100)
-    address_line1: Optional[str] = Field(None, max_length=255)
-    address_line2: Optional[str] = Field(None, max_length=255)
-    city: Optional[str] = Field(None, max_length=100)
-    state: Optional[str] = Field(None, max_length=100)
-    country: Optional[str] = Field(None, max_length=100)
-    postal_code: Optional[str] = Field(None, max_length=20)
-    bio: Optional[str] = None
-
-class MemberCreate(MemberBase):
-    """Schema for creating member profile"""
-    pass
-
-class MemberUpdate(MemberBase):
-    """Schema for updating member profile"""
-    pass
-
-class MemberResponse(MemberBase):
-    """Full member profile response"""
-    id: int
-    user_id: int
-    employee_id: Optional[str]
-    profile_picture_url: Optional[str]
-    joined_date: datetime
-    last_active: datetime
-    is_verified: bool
-    username: str
-    email: str
+class MemberCreate(BaseModel):
+    first_name: str
+    last_name: str
+    email: EmailStr
+    mobile: str
+    gender: str  # "Male" or "Female"
+    date_of_birth: date
+    password: str
+    confirm_password: str
+    member_type_id: int
+    membership_fee_id: int
+    area_id: int
+    legion_id: int
     
-    class Config:
-        from_attributes = True
+    @validator('confirm_password')
+    def passwords_match(cls, v, values):
+        if 'password' in values and v != values['password']:
+            raise ValueError('Passwords do not match')
+        return v
+    
+    @validator('gender')
+    def validate_gender(cls, v):
+        if v not in ['Male', 'Female']:
+            raise ValueError('Gender must be Male or Female')
+        return v
 
-class MemberListItem(BaseModel):
-    """Simplified member info for lists"""
+class MemberResponse(BaseModel):
     id: int
-    user_id: int
-    first_name: Optional[str]
-    last_name: Optional[str]
+    first_name: str
+    last_name: str
     email: str
-    username: str
-    job_title: Optional[str]
-    department: Optional[str]
+    mobile: str
+    gender: str
+    date_of_birth: date
+    membership_number: str
+    member_type_id: int
+    membership_fee_id: int
+    area_id: int
+    legion_id: int
     is_active: bool
-    joined_date: datetime
+    join_date: date
+    
+    # Additional info
+    area_name: Optional[str] = None
+    legion_name: Optional[str] = None
+    member_type_name: Optional[str] = None
     
     class Config:
         from_attributes = True

@@ -2,11 +2,16 @@
 Grant all permissions to Admin roles
 """
 import sys
-sys.path.append('..')
+from pathlib import Path
+
+# Add the backend directory to path - PROPER WAY
+backend_dir = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(backend_dir))
 
 from app.database import SessionLocal
 from app.models.role import Role
 from app.models.permission import Permission
+
 
 def grant_all_admins_permissions():
     """Grant all permissions to all Admin roles"""
@@ -42,9 +47,12 @@ def grant_all_admins_permissions():
         
     except Exception as e:
         print(f"❌ Error: {e}")
+        import traceback
+        traceback.print_exc()
         db.rollback()
     finally:
         db.close()
+
 
 if __name__ == "__main__":
     grant_all_admins_permissions()

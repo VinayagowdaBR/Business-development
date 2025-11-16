@@ -18,8 +18,7 @@ from app.schemas.token import TokenData
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # OAuth2 scheme for token authentication
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
-
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 def hash_password(password: str) -> str:
     """
     Hash a plain text password

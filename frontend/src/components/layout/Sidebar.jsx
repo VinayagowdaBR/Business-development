@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { 
   Home, Users, Database, Settings, ChevronDown, 
-  BarChart3, FileText, Bell, Menu, X, Shield, UserCheck  // Add UserCheck
+  BarChart3, FileText, Bell, Menu, X, Shield, UserCheck, Map, Share2, Tag   // Add UserCheck
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+
+
 
 const Sidebar = ({ collapsed, setCollapsed }) => {
   const navigate = useNavigate();
@@ -22,7 +24,12 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
         { label: 'Roles', path: '/users/roles' },
       ]
     },
-    { id: 'members', icon: UserCheck, label: 'Members List', path: '/members' }, // ADD THIS AS SEPARATE
+    
+    { id: 'area-legion', icon: Map, label: 'Area and Legion', path: '/areas-legions' },
+    { id: 'members', icon: UserCheck, label: 'Members List', path: '/members' },
+    { id: 'membership-fees', icon: Share2, label: 'Membership Fees', path: '/membership-fees' },
+    { id: 'member-types', icon: Tag, label: 'Member Types', path: '/member-types' },
+        
     { id: 'database', icon: Database, label: 'Database', path: '/database' },
     { id: 'reports', icon: BarChart3, label: 'Reports', path: '/reports' },
     { id: 'documents', icon: FileText, label: 'Documents', path: '/documents' },

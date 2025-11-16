@@ -1,50 +1,119 @@
 """
-Business logic for member management
+Member service - Business logic for managing external clients/members
 """
 from sqlalchemy.orm import Session
-from typing import List, Optional
-from fastapi import HTTPException, status
-from datetime import datetime
-
 from app.models.member import Member
-from app.models.user import User
-from app.schemas.member import MemberCreate, MemberUpdate
+from app.models.member_type import MemberType
+from app.models.organization import Organization
+from app.models.area import Area
+from app.models.legion import Legion
+from app.models.membership_fee import MembershipFee
+from datetime import date
+from passlib.context import CryptContext
+import random
+
+# Password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 
 class MemberService:
     """Service class for member operations"""
     
     @staticmethod
-    def create_member_profile(
+    def generate_membership_number() -> str:
+        """Generate unique membership number"""
+        return f"MEM{random.randint(100000, 999999)}"
+    
+    @staticmethod
+    def hash_password(password: str) -> str:
+        """Hash password using bcrypt"""
+        return pwd_context.hash(password)
+    
+    @staticmethod
+    def verify_password(plain_password: str, hashed_password: str) -> bool:
+        """Verify password"""
+        return pwd_context.verify(plain_password, hashed_password)
+    
+    @staticmethod
+    def create_member(
         db: Session,
-        user_id: int,
-        member_data: MemberCreate
+        first_name: str,
+        last_name: str,
+        email: str,
+        mobile: str,
+        gender: str,
+        date_of_birth: date,
+        password: str,
+        member_type_id: int,
+        membership_fee_id: int,
+        area_id: int,
+        legion_id: int,
+        managed_by_org_id: int,
+        **kwargs
     ) -> Member:
-        """Create member profile for user"""
+        """Create a new member (external client)"""
         
-        # Check if user exists
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
-            )
-        
-        # Check if profile already exists
-        existing = db.query(Member).filter(Member.user_id == user_id).first()
+        # Check if email already exists
+        existing = db.query(Member).filter(Member.email == email).first()
         if existing:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Member profile already exists"
-            )
+            raise ValueError("Email already registered")
         
-        # Generate employee ID
-        employee_id = f"EMP{user_id:05d}"
+        # Verify member type exists
+        member_type = db.query(MemberType).filter(MemberType.id == member_type_id).first()
+        if not member_type:
+            raise ValueError("Member type not found")
+        
+        # Verify organization exists
+        org = db.query(Organization).filter(Organization.id == managed_by_org_id).first()
+        if not org:
+            raise ValueError("Organization not found")
+        
+        # Verify membership fee exists
+        fee = db.query(MembershipFee).filter(MembershipFee.id == membership_fee_id).first()
+        if not fee:
+            raise ValueError("Membership fee plan not found")
+        
+        # Verify area exists
+        area = db.query(Area).filter(Area.id == area_id).first()
+        if not area:
+            raise ValueError("Area not found")
+        
+        # Verify legion exists and belongs to the selected area
+        legion = db.query(Legion).filter(Legion.id == legion_id).first()
+        if not legion:
+            raise ValueError("Legion not found")
+        if legion.area_id != area_id:
+            raise ValueError("Legion does not belong to the selected area")
+        
+        # Validate gender
+        if gender not in ['Male', 'Female']:
+            raise ValueError("Gender must be 'Male' or 'Female'")
+        
+        # Generate unique membership number
+        membership_number = MemberService.generate_membership_number()
+        while db.query(Member).filter(Member.membership_number == membership_number).first():
+            membership_number = MemberService.generate_membership_number()
+        
+        # Hash password
+        hashed_password = MemberService.hash_password(password)
         
         # Create member
         member = Member(
-            user_id=user_id,
-            employee_id=employee_id,
-            **member_data.dict(exclude_none=True)
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            mobile=mobile,
+            gender=gender,
+            date_of_birth=date_of_birth,
+            hashed_password=hashed_password,
+            member_type_id=member_type_id,
+            membership_fee_id=membership_fee_id,
+            area_id=area_id,
+            legion_id=legion_id,
+            managed_by_org_id=managed_by_org_id,
+            membership_number=membership_number,
+            join_date=date.today(),
+            **kwargs
         )
         
         db.add(member)
@@ -54,43 +123,50 @@ class MemberService:
         return member
     
     @staticmethod
-    def get_member_by_user_id(db: Session, user_id: int) -> Optional[Member]:
-        """Get member profile by user ID"""
-        return db.query(Member).filter(Member.user_id == user_id).first()
-    
-    @staticmethod
-    def get_members_by_organization(
-        db: Session,
-        organization_id: int,
-        skip: int = 0,
-        limit: int = 100
-    ) -> List[Member]:
-        """Get all members in organization"""
-        return db.query(Member).join(User).filter(
-            User.organization_id == organization_id
-        ).offset(skip).limit(limit).all()
-    
-    @staticmethod
-    def update_member_profile(
-        db: Session,
-        member_id: int,
-        member_data: MemberUpdate
-    ) -> Member:
-        """Update member profile"""
+    def get_member_by_id(db: Session, member_id: int) -> Member:
+        """Get member by ID"""
         member = db.query(Member).filter(Member.id == member_id).first()
-        
         if not member:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Member profile not found"
-            )
+            raise ValueError("Member not found")
+        return member
+    
+    @staticmethod
+    def get_member_by_email(db: Session, email: str) -> Member:
+        """Get member by email"""
+        return db.query(Member).filter(Member.email == email).first()
+    
+    @staticmethod
+    def authenticate_member(db: Session, email: str, password: str) -> Member:
+        """Authenticate member by email and password"""
+        member = MemberService.get_member_by_email(db, email)
+        if not member:
+            return None
+        if not MemberService.verify_password(password, member.hashed_password):
+            return None
+        if not member.is_active:
+            raise ValueError("Member account is inactive")
+        return member
+    
+    @staticmethod
+    def update_member(db: Session, member_id: int, **kwargs) -> Member:
+        """Update member details"""
+        member = MemberService.get_member_by_id(db, member_id)
         
-        # Update fields
-        update_data = member_data.dict(exclude_none=True)
-        for field, value in update_data.items():
-            setattr(member, field, value)
+        # If password is being updated, hash it
+        if 'password' in kwargs:
+            kwargs['hashed_password'] = MemberService.hash_password(kwargs.pop('password'))
         
-        member.last_active = datetime.utcnow()
+        # Validate legion-area relationship if both are being updated
+        if 'legion_id' in kwargs and 'area_id' in kwargs:
+            legion = db.query(Legion).filter(Legion.id == kwargs['legion_id']).first()
+            if legion and legion.area_id != kwargs['area_id']:
+                raise ValueError("Legion does not belong to the selected area")
+        
+        for key, value in kwargs.items():
+            if hasattr(member, key) and key != 'hashed_password':
+                setattr(member, key, value)
+            elif key == 'hashed_password':
+                setattr(member, key, value)
         
         db.commit()
         db.refresh(member)
@@ -98,32 +174,57 @@ class MemberService:
         return member
     
     @staticmethod
-    def delete_member_profile(db: Session, member_id: int) -> bool:
-        """Delete member profile"""
-        member = db.query(Member).filter(Member.id == member_id).first()
-        
-        if not member:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Member profile not found"
-            )
-        
+    def delete_member(db: Session, member_id: int) -> bool:
+        """Delete a member"""
+        member = MemberService.get_member_by_id(db, member_id)
         db.delete(member)
         db.commit()
-        
         return True
     
     @staticmethod
-    def search_members(
-        db: Session,
-        organization_id: int,
-        search_term: str
-    ) -> List[Member]:
-        """Search members by name, email, or department"""
-        return db.query(Member).join(User).filter(
-            User.organization_id == organization_id,
+    def get_members_by_organization(db: Session, org_id: int, skip: int = 0, limit: int = 100):
+        """Get all members managed by a specific organization"""
+        return db.query(Member).filter(
+            Member.managed_by_org_id == org_id
+        ).offset(skip).limit(limit).all()
+    
+    @staticmethod
+    def get_members_by_type(db: Session, member_type_id: int, skip: int = 0, limit: int = 100):
+        """Get all members of a specific type"""
+        return db.query(Member).filter(
+            Member.member_type_id == member_type_id
+        ).offset(skip).limit(limit).all()
+    
+    @staticmethod
+    def get_members_by_area(db: Session, area_id: int, skip: int = 0, limit: int = 100):
+        """Get all members in a specific area"""
+        return db.query(Member).filter(
+            Member.area_id == area_id
+        ).offset(skip).limit(limit).all()
+    
+    @staticmethod
+    def get_members_by_legion(db: Session, legion_id: int, skip: int = 0, limit: int = 100):
+        """Get all members in a specific legion"""
+        return db.query(Member).filter(
+            Member.legion_id == legion_id
+        ).offset(skip).limit(limit).all()
+    
+    @staticmethod
+    def search_members(db: Session, org_id: int, search_term: str):
+        """Search members by name, email, or mobile"""
+        return db.query(Member).filter(
+            Member.managed_by_org_id == org_id,
             (Member.first_name.ilike(f"%{search_term}%") |
              Member.last_name.ilike(f"%{search_term}%") |
-             Member.department.ilike(f"%{search_term}%") |
-             User.email.ilike(f"%{search_term}%"))
+             Member.email.ilike(f"%{search_term}%") |
+             Member.mobile.ilike(f"%{search_term}%") |
+             Member.membership_number.ilike(f"%{search_term}%"))
+        ).all()
+    
+    @staticmethod
+    def get_legions_by_area(db: Session, area_id: int):
+        """Get all legions in a specific area"""
+        return db.query(Legion).filter(
+            Legion.area_id == area_id,
+            Legion.is_active == True
         ).all()

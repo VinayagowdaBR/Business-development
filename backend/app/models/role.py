@@ -1,5 +1,5 @@
 """
-Role model for RBAC
+Role model for RBAC - Updated for new structure
 """
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Table, Text
 from sqlalchemy.orm import relationship
@@ -15,13 +15,21 @@ role_permissions = Table(
 )
 
 class Role(Base):
+    """Roles for staff/admin users (NOT for members)"""
     __tablename__ = "roles"
     
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False, index=True)
-    description = Column(Text)
-    organization_id = Column(Integer, ForeignKey("organizations.id", ondelete="CASCADE"))
+    name = Column(String(100), nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    
+    # Each role belongs to an organization
+    organization_id = Column(Integer, ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False)
+    
+    # System roles (Super Admin, etc.) vs custom roles
     is_system_role = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    
+    # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -29,4 +37,3 @@ class Role(Base):
     organization = relationship("Organization", back_populates="roles")
     users = relationship("User", secondary="user_roles", back_populates="roles")
     permissions = relationship("Permission", secondary=role_permissions, back_populates="roles")
-    row_policies = relationship("RowLevelPolicy", back_populates="role", cascade="all, delete-orphan")

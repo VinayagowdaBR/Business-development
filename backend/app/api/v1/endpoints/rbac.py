@@ -8,7 +8,7 @@ from typing import List
 from app.database import get_db
 from app.models.user import User
 from app.models.role import Role
-from app.models.permission import Permission, RowLevelPolicy
+from app.models.permission import Permission
 from app.schemas.role import (
     PermissionCreate, PermissionResponse,
     RoleCreate, RoleUpdate, RoleResponse,
