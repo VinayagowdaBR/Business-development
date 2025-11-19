@@ -12,8 +12,6 @@ from app.models.permission import Permission
 # Member-related models
 from app.models.member_type import MemberType
 from app.models.membership_fee import MembershipFee
-from app.models.area import Area
-from app.models.legion import Legion
 from app.models.member import Member
 
 __all__ = [
@@ -27,8 +25,6 @@ __all__ = [
     "Member",
     "MemberType",
     "MembershipFee",
-    "Area",
-    "Legion",
     # Many-to-Many tables
     "user_roles",
     "role_permissions"

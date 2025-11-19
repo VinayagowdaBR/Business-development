@@ -34,9 +34,6 @@ class Member(Base):
     membership_number = Column(String(50), unique=True, nullable=False, index=True)
     membership_fee_id = Column(Integer, ForeignKey("membership_fees.id"), nullable=False)
     
-    # Location
-    area_id = Column(Integer, ForeignKey("areas.id"), nullable=False)
-    legion_id = Column(Integer, ForeignKey("legions.id"), nullable=False)
     
     # Which organization manages this member
     managed_by_org_id = Column(Integer, ForeignKey("organizations.id"), nullable=False)
@@ -61,5 +58,3 @@ class Member(Base):
     )
     member_type = relationship("MemberType")
     membership_fee = relationship("MembershipFee")
-    area = relationship("Area")
-    legion = relationship("Legion")

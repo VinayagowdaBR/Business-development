@@ -1,22 +1,25 @@
 from pydantic import BaseModel
 from typing import Optional
 
-class AreaBase(BaseModel):
+class StateBase(BaseModel):
     name: str
     code: str
     description: Optional[str] = None
 
-class AreaCreate(AreaBase):
+class StateCreate(StateBase):
     pass
 
-class AreaUpdate(BaseModel):
+class StateUpdate(BaseModel):
     name: Optional[str] = None
     code: Optional[str] = None
     description: Optional[str] = None
     is_active: Optional[bool] = None
 
-class AreaResponse(AreaBase):
+class StateResponse(BaseModel):
     id: int
+    name: str
+    code: str
+    description: Optional[str] = None
     is_active: bool
 
     class Config:

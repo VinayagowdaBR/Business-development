@@ -2,7 +2,7 @@
 API v1 router aggregator
 """
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, users, organizations, members, rbac, area, legion, membership_fees,member_types
+from app.api.v1.endpoints import auth, users, organizations, members, rbac, membership_fees,member_types
 api_router = APIRouter()
 
 # Include all endpoint routers ONCE
@@ -11,7 +11,5 @@ api_router.include_router(users.router, prefix="/users", tags=["Users"])
 api_router.include_router(organizations.router, prefix="/organizations", tags=["Organizations"])
 api_router.include_router(members.router, prefix="/members", tags=["Members"])
 api_router.include_router(rbac.router, prefix="/rbac", tags=["RBAC"])
-api_router.include_router(area.router, prefix="/areas", tags=["areas"])
-api_router.include_router(legion.router, prefix="/legions", tags=["legions"])
 api_router.include_router(membership_fees.router, prefix="/membership-fees", tags=["Membership Fees"])
 api_router.include_router(member_types.router)

@@ -25,10 +25,10 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       ]
     },
     
-    { id: 'area-legion', icon: Map, label: 'Area and Legion', path: '/areas-legions' },
     { id: 'members', icon: UserCheck, label: 'Members List', path: '/members' },
     { id: 'membership-fees', icon: Share2, label: 'Membership Fees', path: '/membership-fees' },
     { id: 'member-types', icon: Tag, label: 'Member Types', path: '/member-types' },
+    { id: 'state-district', icon: Map, label: 'State & District', path: '/state-district' },
         
     { id: 'database', icon: Database, label: 'Database', path: '/database' },
     { id: 'reports', icon: BarChart3, label: 'Reports', path: '/reports' },

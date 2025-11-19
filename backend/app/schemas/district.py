@@ -1,24 +1,28 @@
 from pydantic import BaseModel
 from typing import Optional
 
-class LegionBase(BaseModel):
-    name: str         # full name
-    prefix: str       # short code
-    area_id: int
+class DistrictBase(BaseModel):
+    name: str
+    prefix: str
+    state_id: int
     description: Optional[str] = None
 
-class LegionCreate(LegionBase):
+class DistrictCreate(DistrictBase):
     pass
 
-class LegionUpdate(BaseModel):
+class DistrictUpdate(BaseModel):
     name: Optional[str] = None
     prefix: Optional[str] = None
-    area_id: Optional[int] = None
+    state_id: Optional[int] = None
     description: Optional[str] = None
     is_active: Optional[bool] = None
 
-class LegionResponse(LegionBase):
+class DistrictResponse(BaseModel):
     id: int
+    name: str
+    prefix: str
+    state_id: int
+    description: Optional[str] = None
     is_active: bool
 
     class Config:

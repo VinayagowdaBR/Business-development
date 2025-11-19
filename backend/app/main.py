@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config import settings
 from app.database import Base, engine
 from app.api.v1.api import api_router
+from app.api.v1.endpoints import state, district
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -44,6 +45,8 @@ app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
 # Include API router ONCE
 app.include_router(api_router, prefix=settings.API_V1_STR)
+app.include_router(state.router, prefix="/api/v1")
+app.include_router(district.router, prefix="/api/v1")
 
 @app.get("/")
 def root():

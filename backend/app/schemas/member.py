@@ -16,8 +16,7 @@ class MemberCreate(BaseModel):
     confirm_password: str
     member_type_id: int
     membership_fee_id: int
-    area_id: int
-    legion_id: int
+
     
     @validator('confirm_password')
     def passwords_match(cls, v, values):
@@ -42,14 +41,10 @@ class MemberResponse(BaseModel):
     membership_number: str
     member_type_id: int
     membership_fee_id: int
-    area_id: int
-    legion_id: int
     is_active: bool
     join_date: date
     
     # Additional info
-    area_name: Optional[str] = None
-    legion_name: Optional[str] = None
     member_type_name: Optional[str] = None
     
     class Config:

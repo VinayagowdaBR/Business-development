@@ -5,8 +5,6 @@ from sqlalchemy.orm import Session
 from app.models.member import Member
 from app.models.member_type import MemberType
 from app.models.organization import Organization
-from app.models.area import Area
-from app.models.legion import Legion
 from app.models.membership_fee import MembershipFee
 from datetime import date
 from passlib.context import CryptContext
@@ -46,8 +44,6 @@ class MemberService:
         password: str,
         member_type_id: int,
         membership_fee_id: int,
-        area_id: int,
-        legion_id: int,
         managed_by_org_id: int,
         **kwargs
     ) -> Member:
@@ -73,17 +69,6 @@ class MemberService:
         if not fee:
             raise ValueError("Membership fee plan not found")
         
-        # Verify area exists
-        area = db.query(Area).filter(Area.id == area_id).first()
-        if not area:
-            raise ValueError("Area not found")
-        
-        # Verify legion exists and belongs to the selected area
-        legion = db.query(Legion).filter(Legion.id == legion_id).first()
-        if not legion:
-            raise ValueError("Legion not found")
-        if legion.area_id != area_id:
-            raise ValueError("Legion does not belong to the selected area")
         
         # Validate gender
         if gender not in ['Male', 'Female']:
@@ -108,8 +93,6 @@ class MemberService:
             hashed_password=hashed_password,
             member_type_id=member_type_id,
             membership_fee_id=membership_fee_id,
-            area_id=area_id,
-            legion_id=legion_id,
             managed_by_org_id=managed_by_org_id,
             membership_number=membership_number,
             join_date=date.today(),
@@ -156,12 +139,6 @@ class MemberService:
         if 'password' in kwargs:
             kwargs['hashed_password'] = MemberService.hash_password(kwargs.pop('password'))
         
-        # Validate legion-area relationship if both are being updated
-        if 'legion_id' in kwargs and 'area_id' in kwargs:
-            legion = db.query(Legion).filter(Legion.id == kwargs['legion_id']).first()
-            if legion and legion.area_id != kwargs['area_id']:
-                raise ValueError("Legion does not belong to the selected area")
-        
         for key, value in kwargs.items():
             if hasattr(member, key) and key != 'hashed_password':
                 setattr(member, key, value)
@@ -195,19 +172,7 @@ class MemberService:
             Member.member_type_id == member_type_id
         ).offset(skip).limit(limit).all()
     
-    @staticmethod
-    def get_members_by_area(db: Session, area_id: int, skip: int = 0, limit: int = 100):
-        """Get all members in a specific area"""
-        return db.query(Member).filter(
-            Member.area_id == area_id
-        ).offset(skip).limit(limit).all()
-    
-    @staticmethod
-    def get_members_by_legion(db: Session, legion_id: int, skip: int = 0, limit: int = 100):
-        """Get all members in a specific legion"""
-        return db.query(Member).filter(
-            Member.legion_id == legion_id
-        ).offset(skip).limit(limit).all()
+
     
     @staticmethod
     def search_members(db: Session, org_id: int, search_term: str):
@@ -221,10 +186,3 @@ class MemberService:
              Member.membership_number.ilike(f"%{search_term}%"))
         ).all()
     
-    @staticmethod
-    def get_legions_by_area(db: Session, area_id: int):
-        """Get all legions in a specific area"""
-        return db.query(Legion).filter(
-            Legion.area_id == area_id,
-            Legion.is_active == True
-        ).all()

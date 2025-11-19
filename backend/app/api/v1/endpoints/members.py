@@ -26,7 +26,7 @@ def create_member(
     - Personal: first_name, last_name, email, mobile, gender, date_of_birth
     - Auth: password, confirm_password
     - Membership: member_type_id, membership_fee_id
-    - Location: area_id, legion_id
+
     """
     try:
         member = MemberService.create_member(
@@ -40,8 +40,6 @@ def create_member(
             password=member_data.password,
             member_type_id=member_data.member_type_id,
             membership_fee_id=member_data.membership_fee_id,
-            area_id=member_data.area_id,
-            legion_id=member_data.legion_id,
             managed_by_org_id=current_user.organization_id
         )
         
@@ -90,8 +88,6 @@ def list_members(
             "mobile": m.mobile,
             "gender": m.gender,
             "member_type_id": m.member_type_id,
-            "area_id": m.area_id,
-            "legion_id": m.legion_id,
             "is_active": m.is_active,
             "join_date": str(m.join_date)
         }
@@ -124,8 +120,6 @@ def get_member(
             "date_of_birth": str(member.date_of_birth),
             "member_type_id": member.member_type_id,
             "membership_fee_id": member.membership_fee_id,
-            "area_id": member.area_id,
-            "legion_id": member.legion_id,
             "is_active": member.is_active,
             "is_verified": member.is_verified,
             "join_date": str(member.join_date),
@@ -192,22 +186,3 @@ def delete_member(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-
-@router.get("/areas/{area_id}/legions", response_model=List[dict])
-def get_legions_by_area(
-    area_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """Get all legions in a specific area (for cascading dropdown)"""
-    legions = MemberService.get_legions_by_area(db, area_id)
-    
-    return [
-        {
-            "id": legion.id,
-            "name": legion.name,
-            "code": legion.code,
-            "area_id": legion.area_id
-        }
-        for legion in legions
-    ]

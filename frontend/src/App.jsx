@@ -9,9 +9,9 @@ import RoleManagement from './pages/RoleManagement';
 import OrganizationDashboard from './components/OrganizationDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import MembersList from './pages/MembersList'; 
-import AreaLegionPage from './pages/AreaLegionPage';
 import MembershipFeesPage from './pages/MembershipFeesPage';
 import MemberTypesPage from './pages/MemberTypesPage';
+import StateDistrictPage from './pages/StateDistrictPage';
 
 function App() {
   return (
@@ -34,17 +34,6 @@ function App() {
             }
           />
 
-          {/* Areas & Legions */}
-          <Route
-            path="/areas-legions"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <AreaLegionPage />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
 
           {/* Membership Fees - FIXED: Only one route */}
           <Route
@@ -108,6 +97,16 @@ function App() {
 
 
 
+        <Route
+          path="/state-district"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <StateDistrictPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
 
 
 
