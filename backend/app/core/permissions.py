@@ -8,6 +8,7 @@ from typing import List
 from app.models.user import User
 from app.database import get_db
 
+
 def has_permission(user: User, resource: str, action: str) -> bool:
     """
     Check if user has permission to perform action on resource
@@ -20,6 +21,10 @@ def has_permission(user: User, resource: str, action: str) -> bool:
     Returns:
         True if user has permission, False otherwise
     """
+    # ✅ Super admin bypass - FIRST CHECK
+    if hasattr(user, 'is_super_admin') and user.is_super_admin:
+        return True
+    
     if not user.roles:
         return False
     
@@ -34,6 +39,7 @@ def has_permission(user: User, resource: str, action: str) -> bool:
                 return True
     
     return False
+
 
 def require_permission(resource: str, action: str):
     """
@@ -59,6 +65,7 @@ def require_permission(resource: str, action: str):
     
     return permission_checker
 
+
 def require_admin(user: User) -> bool:
     """
     Check if user has admin role
@@ -72,6 +79,10 @@ def require_admin(user: User) -> bool:
     Raises:
         HTTPException: If user is not admin
     """
+    # ✅ Super admin bypass - FIRST CHECK
+    if hasattr(user, 'is_super_admin') and user.is_super_admin:
+        return True
+    
     if not user.roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -79,13 +90,14 @@ def require_admin(user: User) -> bool:
         )
     
     for role in user.roles:
-        if role.name.lower() in ["admin", "system admin"] or role.is_system_role:
+        if role.name.lower() in ["admin", "system admin", "super admin"] or role.is_system_role:
             return True
     
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="Admin access required"
     )
+
 
 def check_same_organization(user: User, target_user: User) -> bool:
     """
@@ -101,12 +113,17 @@ def check_same_organization(user: User, target_user: User) -> bool:
     Raises:
         HTTPException: If users are in different organizations
     """
+    # ✅ Super admin bypass - can access all orgs
+    if hasattr(user, 'is_super_admin') and user.is_super_admin:
+        return True
+    
     if user.organization_id != target_user.organization_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot access users from other organizations"
         )
     return True
+
 
 def get_user_permissions(user: User) -> List[str]:
     """
@@ -118,6 +135,10 @@ def get_user_permissions(user: User) -> List[str]:
     Returns:
         List of permission strings in format "resource:action"
     """
+    # ✅ Super admin gets wildcard
+    if hasattr(user, 'is_super_admin') and user.is_super_admin:
+        return ["*:*"]
+    
     permissions = set()
     
     if not user.roles:

@@ -9,7 +9,6 @@ from fastapi.staticfiles import StaticFiles
 from app.config import settings
 from app.database import Base, engine
 from app.api.v1.api import api_router
-from app.api.v1.endpoints import state, district
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -33,20 +32,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# Serve uploaded files (ADD THIS BEFORE API ROUTES)
+# Serve uploaded files
 uploads_dir = "uploads"
 if not os.path.exists(uploads_dir):
     os.makedirs(uploads_dir)
 app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
-
-
-
-# Include API router ONCE
+# Include API router ONCE - this already includes state, district, member
 app.include_router(api_router, prefix=settings.API_V1_STR)
-app.include_router(state.router, prefix="/api/v1")
-app.include_router(district.router, prefix="/api/v1")
+
+# REMOVED: These lines cause duplicates
+# app.include_router(state.router, prefix="/api/v1")
+# app.include_router(district.router, prefix="/api/v1")
 
 @app.get("/")
 def root():

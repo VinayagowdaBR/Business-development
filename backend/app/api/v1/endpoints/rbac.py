@@ -28,11 +28,18 @@ def list_all_permissions(
     current_user: User = Depends(get_current_user)
 ):
     """Get all available permissions"""
+    # ✅ Super admin bypass
+    if current_user.is_super_admin:
+        permissions = db.query(Permission).all()
+        return permissions
+    
+    # Regular permission check
     if not has_permission(current_user, "rbac", "read"):
         raise HTTPException(status_code=403, detail="Permission denied")
     
     permissions = db.query(Permission).all()
     return permissions
+
 
 @router.post("/permissions", response_model=PermissionResponse)
 def create_permission(

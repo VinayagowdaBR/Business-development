@@ -37,12 +37,5 @@ class Organization(Base):
     staff_users = relationship("User", back_populates="organization", cascade="all, delete-orphan", foreign_keys="[User.organization_id]")
     roles = relationship("Role", back_populates="organization", cascade="all, delete-orphan")
     
-    # Members managed by this organization (explicit relationship)
-    managed_members = relationship(
-        "Member",
-        foreign_keys="[Member.managed_by_org_id]",
-        lazy="select"
-    )
-    
     # Self-referential relationship for hierarchy
     parent = relationship("Organization", remote_side=[id], backref="sub_branches")

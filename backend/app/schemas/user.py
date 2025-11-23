@@ -5,9 +5,11 @@ from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List
 from datetime import datetime
 
+
 class UserBase(BaseModel):
     username: str
     email: EmailStr
+
 
 class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
@@ -15,9 +17,11 @@ class UserCreate(BaseModel):
     password: str = Field(..., min_length=6)
     organization_name: str = Field(..., min_length=2)
 
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
 
 class UserResponse(BaseModel):
     id: int
@@ -25,11 +29,14 @@ class UserResponse(BaseModel):
     email: str
     organization_id: int
     is_active: bool
-    created_at: datetime
+    created_at: Optional[datetime] = None  # ✅ Changed to Optional
+    updated_at: Optional[datetime] = None  # ✅ Added this too
+    last_login: Optional[datetime] = None   # ✅ Added this too
     roles: List[str] = []
 
     class Config:
         from_attributes = True
+
 
 class UserCreateByAdmin(BaseModel):
     username: str = Field(..., min_length=3)

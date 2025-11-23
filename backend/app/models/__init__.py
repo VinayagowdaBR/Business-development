@@ -9,10 +9,14 @@ from app.models.user import User, user_roles
 from app.models.role import Role, role_permissions
 from app.models.permission import Permission
 
-# Member-related models
+# Location models
+from app.models.state import State
+from app.models.district import District
+
+# Member models (NEW - without relationships to old structure)
+from app.models.member import Member
 from app.models.member_type import MemberType
 from app.models.membership_fee import MembershipFee
-from app.models.member import Member
 
 __all__ = [
     "Base",
@@ -21,6 +25,9 @@ __all__ = [
     "User",
     "Role",
     "Permission",
+    # Location
+    "State",
+    "District",
     # Members
     "Member",
     "MemberType",

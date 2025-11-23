@@ -15,5 +15,6 @@ class MemberType(Base):
     description = Column(Text, nullable=True)
     is_active = Column(Boolean, default=True)
     
-    # Relationships
-    members = relationship("Member", back_populates="member_type")
+
+   # Relationships
+    members = relationship("Member", back_populates="member_type")  
